@@ -9,7 +9,7 @@ extern "C" {
 #include <iostream>
 #include <stdio.h>
 #include <ctype.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <algorithm>
 
 // From Dagster/Tinisat

@@ -28,6 +28,7 @@ struct SolverConstraints {
     bool serial = false;
     bool euclidean = false;
     bool tense = false;
+    bool knowledge = false;
     bool oneSat = false;
     bool localReduction = false;
     bool globalReduction = false;

@@ -1,5 +1,5 @@
-#ifndef TRIEFORM_PROVER_S5
-#define TRIEFORM_PROVER_S5
+#ifndef TRIEFORM_PROVER_MAEL
+#define TRIEFORM_PROVER_MAEL
 
 #include "../../../Bitset/Bitset.h"
 #include "../../../Clausifier/Trieform/Trieform.h"
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class TrieformProverS5 : public Trieform {
+class TrieformProverMAEL : public Trieform {
 protected:
 	static shared_ptr<Cache> persistentCache;
 
@@ -32,8 +32,8 @@ protected:
 	void propagateSymmetricBoxes();
 
 public:
-	TrieformProverS5();
-	~TrieformProverS5();
+	TrieformProverMAEL();
+	~TrieformProverMAEL();
 
 	Solution prove(vector<shared_ptr<Bitset>> history, literal_set assumptions);
 	virtual Solution prove(literal_set assumptions);

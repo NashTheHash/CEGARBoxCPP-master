@@ -1,12 +1,12 @@
-#ifndef NOTDISTRIBUTED_H
-#define NOTDISTRIBUTED_H
+#ifndef DISTRIBUTED_H
+#define DISTRIBUTED_H
 
 #include "../../Defines/Defines.h"
 #include "../NotKnow/NotKnow.h"
 #include "../FEnum/FEnum.h"
 #include "../Formula/Formula.h"
 #include "../True/True.h"
-#include "../Distributed/Distributed.h"
+#include "../NotDistributed/NotDistributed.h"
 #include "../../GroupScanner/GroupScanner.h"
 #include <functional>
 #include <iostream>
@@ -16,15 +16,15 @@
 
 using namespace std;
 
-class NotDistributed : public Formula, public enable_shared_from_this<NotDistributed> {
+class Distributed : public Formula, public enable_shared_from_this<Distributed> {
 private:
   int modality_, power_;
-	int notDistributedHash_ = -1;
   shared_ptr<Formula> subformula_;
+  int distributedHash_;
 
 public:
-  NotDistributed(int modality, int power, shared_ptr<Formula> subformula);
-  ~NotDistributed();
+  Distributed(int modality, int power, shared_ptr<Formula> subformula);
+  ~Distributed();
 
   int getModality() const;
   string getModalityListString() const;
@@ -45,7 +45,7 @@ public:
 
   shared_ptr<Formula> clone() const;
 
-  shared_ptr<Formula> constructNotDistributedReduced() const;
+  shared_ptr<Formula> constructDistributedReduced() const;
 
   static shared_ptr<Formula> create(int modality, int power,
                                     const shared_ptr<Formula> &subformula);

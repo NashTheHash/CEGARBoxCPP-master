@@ -1,5 +1,5 @@
 #include <argp.h>
-#include <minisat/core/Solver.h>
+#include <minisat/minisat/core/Solver.h>
 
 #include <chrono>
 #include <fstream>
@@ -21,6 +21,8 @@
 #include "Formula/Formula/Formula.h"
 #include "Formula/Not/Not.h"
 #include "Formula/Or/Or.h"
+#include "Formula/Know/Know.h"
+#include "Formula/NotKnow/NotKnow.h"
 #include "Formula/True/True.h"
 #include "ParseFormula/ParseFormula.h"
 #include "ParseFormulaNew/ParseFormulaNew.h"
@@ -43,6 +45,7 @@ static struct argp_option options[] = {
     {"serial", 'd', 0, 0, "Enables seriality."},
     {"euclidean", '5', 0, 0, "Enables transitivity."},
     {"tense", 'n', 0, 0, "Enables Tense Logic."},
+    {"knowledge", 'c', 0, 0, "Enables Epistemic Logic with Distributivity."},
     {"valid", 'a', 0, 0, "Prove validity."},
     {"onesat", '1', 0, 0, "Use 1 SAT Solver."},
     {"localReduction", 'l', 0, 0, "Perform a local reduction into K"},
@@ -110,6 +113,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 'q':
             arguments->settings.useDag = true;
             break;
+        case 'c':
+            arguments->settings.knowledge = true;
+            break;
         case ARGP_KEY_ARG:
             return 0;
         default:
@@ -147,6 +153,7 @@ void solve(arguments_struct &args) {
 #endif
 
     shared_ptr<Formula> formula = ParseFormula(&args.filename).parseFormula();
+
     // string other = "a.p";
     // shared_ptr<Formula> correct = ParseFormula(&other).parseFormula();
     // cout << "Wrong" << formula->toString() << endl;

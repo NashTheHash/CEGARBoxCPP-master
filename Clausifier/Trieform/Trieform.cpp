@@ -134,6 +134,134 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
             }
         } break;
 
+        case FKnow: {
+            Know *k = dynamic_cast<Know *>(formula.get());
+            if (!stringModalContexts) {
+                shared_ptr<Trieform> subtrie =
+                    getSubtrieOrEmpty(k->getModality());
+                for (int i = 1; i < k->getPower(); i++) {
+                    subtrie = subtrie->getSubtrieOrEmpty(k->getModality());
+                }
+                subtrie->propagateClauses(k->getSubformula());
+            } else {
+                if (k->getPower() == 1 && k->getSubformula()->isPrimitive()) {
+                    clauses.addBoxClause(k->getModality(), True::create(),
+                                         k->getSubformula());
+                    ensureSubtrieExistence(k->getModality());
+                } else {
+                    shared_ptr<Formula> knowReduced = k->constructKnowReduced();
+                    vector<int> newModality =
+                        constructNewModality(k->getModality());
+
+                    shared_ptr<Formula> repVariable;
+                    if (!cache->contains(knowReduced, newModality)) {
+                        repVariable =
+                            cache->createVariableNoInsert(knowReduced, newModality);
+                        getSubtrieOrEmpty(k->getModality())
+                            ->sequenceClausify(knowReduced, repVariable);
+                        cache->insertVariable(knowReduced, newModality, repVariable);
+                    } else {
+                        repVariable = cache->getVariableRepresenting(
+                            knowReduced, newModality);
+                    }
+                    clauses.addKnowClause(k->getModality(), True::create(),
+                                         repVariable);
+                }
+            }
+        } break;
+
+        case FNotKnow: {
+            NotKnow *nk = dynamic_cast<NotKnow *>(formula.get());
+            if (nk->getPower() == 1 && nk->getSubformula()->isPrimitive()) {
+                clauses.addDiamondClause(nk->getModality(), True::create(),
+                                         nk->getSubformula());
+                ensureSubtrieExistence(nk->getModality());
+            } else {
+                shared_ptr<Formula> notKnowReduced =
+                    nk->constructNotKnowReduced();
+                vector<int> newModality =
+                    constructNewModality(nk->getModality());
+
+                shared_ptr<Formula> repVariable;
+                if (!cache->contains(notKnowReduced, newModality)) {
+                    repVariable =
+                        cache->createVariableNoInsert(notKnowReduced, newModality);
+                    getSubtrieOrEmpty(nk->getModality())
+                        ->sequenceClausify(notKnowReduced, repVariable);
+                    cache->insertVariable(notKnowReduced, newModality, repVariable);
+                } else {
+                    repVariable = cache->getVariableRepresenting(notKnowReduced,
+                                                                 newModality);
+                }
+                clauses.addNotKnowClause(nk->getModality(), True::create(),
+                                         repVariable);
+            }
+        } break;
+
+        case FDistributed: {
+            Distributed *dis = dynamic_cast<Distributed *>(formula.get());
+            if (!stringModalContexts) {
+                shared_ptr<Trieform> subtrie =
+                    getSubtrieOrEmpty(dis->getModality());
+                for (int i = 1; i < dis->getPower(); i++) {
+                    subtrie = subtrie->getSubtrieOrEmpty(dis->getModality());
+                }
+                subtrie->propagateClauses(dis->getSubformula());
+            } else {
+                if (dis->getPower() == 1 && dis->getSubformula()->isPrimitive()) {
+                    clauses.addBoxClause(dis->getModality(), True::create(),
+                                         dis->getSubformula());
+                    ensureSubtrieExistence(dis->getModality());
+                } else {
+                    shared_ptr<Formula> knowReduced = dis->constructDistributedReduced();
+                    vector<int> newModality =
+                        constructNewModality(dis->getModality());
+
+                    shared_ptr<Formula> repVariable;
+                    if (!cache->contains(knowReduced, newModality)) {
+                        repVariable =
+                            cache->createVariableNoInsert(knowReduced, newModality);
+                        getSubtrieOrEmpty(dis->getModality())
+                            ->sequenceClausify(knowReduced, repVariable);
+                        cache->insertVariable(knowReduced, newModality, repVariable);
+                    } else {
+                        repVariable = cache->getVariableRepresenting(
+                            knowReduced, newModality);
+                    }
+                    clauses.addKnowClause(dis->getModality(), True::create(),
+                                         repVariable);
+                }
+            }
+        } break;
+
+        case FNotDistributed: {
+            NotKnow *nk = dynamic_cast<NotKnow *>(formula.get());
+            if (nk->getPower() == 1 && nk->getSubformula()->isPrimitive()) {
+                clauses.addDiamondClause(nk->getModality(), True::create(),
+                                         nk->getSubformula());
+                ensureSubtrieExistence(nk->getModality());
+            } else {
+                shared_ptr<Formula> notKnowReduced =
+                    nk->constructNotKnowReduced();
+                vector<int> newModality =
+                    constructNewModality(nk->getModality());
+
+                shared_ptr<Formula> repVariable;
+                if (!cache->contains(notKnowReduced, newModality)) {
+                    repVariable =
+                        cache->createVariableNoInsert(notKnowReduced, newModality);
+                    getSubtrieOrEmpty(nk->getModality())
+                        ->sequenceClausify(notKnowReduced, repVariable);
+                    cache->insertVariable(notKnowReduced, newModality, repVariable);
+                } else {
+                    repVariable = cache->getVariableRepresenting(notKnowReduced,
+                                                                 newModality);
+                }
+                clauses.addNotKnowClause(nk->getModality(), True::create(),
+                                         repVariable);
+            }
+        } break;
+        
         case FOr: {
             Or *o = dynamic_cast<Or *>(formula.get());
 
@@ -263,15 +391,15 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
             }
         } break;
         case FDiamond: {
-            Diamond *d = dynamic_cast<Diamond *>(formula.get());
-            shared_ptr<Formula> diamondReduced = d->constructDiamondReduced();
+            Diamond *nk = dynamic_cast<Diamond *>(formula.get());
+            shared_ptr<Formula> diamondReduced = nk->constructDiamondReduced();
 
             if (diamondReduced->isPrimitive()) {
                 shared_ptr<Formula> left =
                     cache->getVariableOrCreate(formula, modality);
-                clauses.addDiamondClause(d->getModality(), left,
+                clauses.addDiamondClause(nk->getModality(), left,
                                          diamondReduced);
-                ensureSubtrieExistence(d->getModality());
+                ensureSubtrieExistence(nk->getModality());
                 return left;
             } else {
                 if (cache->contains(formula, modality)) {
@@ -281,7 +409,7 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
                         cache->createVariableFor(formula, modality);
 
                     vector<int> newModality =
-                        constructNewModality(d->getModality());
+                        constructNewModality(nk->getModality());
 
                     shared_ptr<Formula> middle;
                     if (cache->contains(diamondReduced, newModality)) {
@@ -290,12 +418,12 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
                     } else {
                         middle = cache->createVariableNoInsert(diamondReduced,
                                                           newModality);
-                        getSubtrieOrEmpty(d->getModality())
+                        getSubtrieOrEmpty(nk->getModality())
                             ->sequenceClausify(diamondReduced, middle);
                         cache->insertVariable(diamondReduced, newModality, middle);
                     }
 
-                    clauses.addDiamondClause(d->getModality(), left, middle);
+                    clauses.addDiamondClause(nk->getModality(), left, middle);
                     return left;
                 }
             }
@@ -337,20 +465,20 @@ void Trieform::orBoxClausify(const shared_ptr<Formula> &box,
 
 void Trieform::orDiamondClausify(const shared_ptr<Formula> &diamond,
                                  const shared_ptr<Formula> &primitive) {
-    Diamond *d = dynamic_cast<Diamond *>(diamond.get());
-    shared_ptr<Formula> diamondReduced = d->constructDiamondReduced();
+    Diamond *nk = dynamic_cast<Diamond *>(diamond.get());
+    shared_ptr<Formula> diamondReduced = nk->constructDiamondReduced();
 
     
     shared_ptr<Formula> newPrimitive = primitive;
     
 
     if (diamondReduced->isPrimitive()) {
-        clauses.addDiamondClause(d->getModality(),
+        clauses.addDiamondClause(nk->getModality(),
                                  Not::create(newPrimitive)->negatedNormalForm(),
                                  diamondReduced);
-        ensureSubtrieExistence(d->getModality());
+        ensureSubtrieExistence(nk->getModality());
     } else {
-        vector<int> newModality = constructNewModality(d->getModality());
+        vector<int> newModality = constructNewModality(nk->getModality());
 
         shared_ptr<Formula> repVariable;
         if (cache->contains(diamondReduced, newModality)) {
@@ -358,10 +486,10 @@ void Trieform::orDiamondClausify(const shared_ptr<Formula> &diamond,
                 cache->getVariableRepresenting(diamondReduced, newModality);
         } else {
             repVariable = cache->createVariableFor(diamondReduced, newModality);
-            getSubtrieOrEmpty(d->getModality())
+            getSubtrieOrEmpty(nk->getModality())
                 ->sequenceClausify(diamondReduced, repVariable);
         }
-        clauses.addDiamondClause(d->getModality(),
+        clauses.addDiamondClause(nk->getModality(),
                                  Not::create(newPrimitive)->negatedNormalForm(),
                                  repVariable);
     }
@@ -1082,7 +1210,7 @@ void Trieform::calculateFormulaDetails(FormulaDetails &formulaDetails,
         } break;
 
         case FDiamond: {
-            Diamond *d = dynamic_cast<Diamond *>(formula.get());
+            Diamond *nk = dynamic_cast<Diamond *>(formula.get());
             if (inBox) {
                 formulaDetails.diffDia.insert(formula);
             } else {
@@ -1091,8 +1219,8 @@ void Trieform::calculateFormulaDetails(FormulaDetails &formulaDetails,
 
             calculateFormulaDetails(
                 formulaDetails,
-                Diamond::create(d->getModality(), d->getPower() - 1,
-                                d->getSubformula()),
+                Diamond::create(nk->getModality(), nk->getPower() - 1,
+                                nk->getSubformula()),
                 inBox, curLevelDia);
         } break;
 
@@ -1169,5 +1297,6 @@ void Trieform::unravel(int depth, bool terminate) {
 void Trieform::propRoot() {
         for (auto subtrie : subtrieMap) {
             clauses.addBoxClause({subtrie.first, True::create(), Atom::create("$root")});
+            clauses.addKnowClause({subtrie.first, True::create(), Atom::create("$root")});
         }
 }

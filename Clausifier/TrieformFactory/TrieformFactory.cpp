@@ -45,7 +45,7 @@ shared_ptr<Trieform> TrieformFactory::makeTrie(
                 constraints.transitive) ||
                (constraints.serial && constraints.symmetric &&
                 constraints.euclidean)) {
-        return makeTrieS5(newFormula);
+        return makeTrieMAEL(newFormula);
     } else if (constraints.symmetric &&
                (constraints.euclidean || constraints.transitive)) {
         return makeTrieKB5(newFormula);
@@ -75,6 +75,8 @@ shared_ptr<Trieform> TrieformFactory::makeTrie(
         return makeTrieK4(newFormula);
     } else if (constraints.euclidean) {
         return makeTrieK5(newFormula);
+    } else if (constraints.knowledge) {
+        return makeTrieMAEL(newFormula);
     }
 
     if (constraints.useKsp) {
